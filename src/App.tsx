@@ -19,13 +19,13 @@ function App() {
   const currentDoc = getCurrentDoc()
   const matchedKnowledge = input ? getMatchedKnowledge(input) : []
 
-  // 检测存储使用量
+  // 检测存储使用量（监听所有可能影响存储的状态）
   useEffect(() => {
     const data = localStorage.getItem('writing-assistant-store') || ''
     const sizeKB = (data.length / 1024).toFixed(1)
     const sizeMB = (data.length / 1024 / 1024).toFixed(2)
     setStorageUsage(data.length > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`)
-  }, [docs, knowledge])
+  }, [docs, knowledge, messages])
 
   // 加载外部知识库
   const loadExternalKnowledge = () => {

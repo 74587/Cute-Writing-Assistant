@@ -84,15 +84,19 @@ export const useStore = create<Store>()(
           docs: s.docs.map((d) => (d.id === id ? { ...d, title } : d)),
         })),
 
-      // 删除文档
+      // 删除文档（同时清空聊天记录，避免串话）
       deleteDoc: (id) =>
         set((s) => ({
           docs: s.docs.filter((d) => d.id !== id),
           currentDocId: s.currentDocId === id ? null : s.currentDocId,
+          messages: s.currentDocId === id ? [] : s.messages,
         })),
 
-      // 切换当前文档
-      setCurrentDoc: (id) => set({ currentDocId: id }),
+      // 切换当前文档（同时清空聊天记录，避免串话）
+      setCurrentDoc: (id) => set((s) => ({ 
+        currentDocId: id,
+        messages: s.currentDocId !== id ? [] : s.messages,
+      })),
 
       // 添加对话消息
       addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
@@ -139,11 +143,16 @@ export const useStore = create<Store>()(
     { 
       name: 'writing-assistant-store',  // localStorage 的 key
       // 只持久化这些字段，externalKnowledge 不存储
+      // apiKey 不持久化，避免泄露风险
       partialize: (state) => ({
         docs: state.docs,
         currentDocId: state.currentDocId,
         messages: state.messages,
-        aiSettings: state.aiSettings,
+        aiSettings: {
+          apiUrl: state.aiSettings.apiUrl,
+          model: state.aiSettings.model,
+          // apiKey 故意不持久化，每次启动需重新输入
+        },
         knowledge: state.knowledge,
       })
     }
