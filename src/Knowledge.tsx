@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from './store'
 import type { KnowledgeEntry } from './types'
 import { ImportAnalyze } from './ImportAnalyze'
+import { LongTextImport } from './LongTextImport'
 import './Knowledge.css'
 
 const CATEGORIES: KnowledgeEntry['category'][] = ['人物', '世界观', '剧情', '设定', '其他']
@@ -12,6 +13,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
   const [editing, setEditing] = useState(false)
   const [filter, setFilter] = useState<string>('全部')
   const [showImport, setShowImport] = useState(false)
+  const [showLongImport, setShowLongImport] = useState(false)
   const [form, setForm] = useState({ title: '', category: '人物' as KnowledgeEntry['category'], keywords: '', content: '' })
 
   const filtered = filter === '全部' ? knowledge : knowledge.filter(k => k.category === filter)
@@ -46,8 +48,9 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
         <button className="btn-close" onClick={onClose}>×</button>
         <div className="knowledge-sidebar">
           <div className="knowledge-header">
-            <h3>📖 知识库</h3>
+            <h3>知识库</h3>
             <div className="header-actions">
+              <button className="btn-import" onClick={() => setShowLongImport(true)}>长文</button>
               <button className="btn-import" onClick={() => setShowImport(true)}>导入</button>
               <button className="btn-new" onClick={handleNew}>+ 新建</button>
             </div>
@@ -112,6 +115,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
         </div>
       </div>
       {showImport && <ImportAnalyze onClose={() => setShowImport(false)} />}
+      {showLongImport && <LongTextImport onClose={() => setShowLongImport(false)} />}
     </div>
   )
 }

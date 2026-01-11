@@ -1,26 +1,46 @@
+/**
+ * 文档导出功能
+ * 支持导出为 TXT 和 Word 格式
+ */
 import { saveAs } from 'file-saver'
 
+/**
+ * 将 HTML 内容转换为纯文本
+ * @param html HTML字符串
+ * @returns 纯文本字符串
+ */
 function htmlToPlainText(html: string): string {
   return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<\/h[1-6]>/gi, '\n\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
+    .replace(/<br\s*\/?>/gi, '\n')      // <br> 转换行
+    .replace(/<\/p>/gi, '\n\n')          // </p> 转双换行
+    .replace(/<\/div>/gi, '\n')          // </div> 转换行
+    .replace(/<\/h[1-6]>/gi, '\n\n')     // 标题结束转双换行
+    .replace(/<[^>]*>/g, '')             // 移除所有HTML标签
+    .replace(/&nbsp;/g, ' ')             // 转换空格
+    .replace(/&lt;/g, '<')               // 转换特殊字符
     .replace(/&gt;/g, '>')
     .replace(/&amp;/g, '&')
     .trim()
 }
 
+/**
+ * 导出为 TXT 文件
+ * @param title 文件名
+ * @param content HTML内容
+ */
 export function exportToTxt(title: string, content: string) {
   const text = htmlToPlainText(content)
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
   saveAs(blob, `${title}.txt`)
 }
 
+/**
+ * 导出为 Word 文件
+ * @param title 文件名
+ * @param content HTML内容
+ */
 export function exportToWord(title: string, content: string) {
+  // 使用 HTML 格式创建 Word 文档
   const html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" 
           xmlns:w="urn:schemas-microsoft-com:office:word">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore, getCurrentDoc } from './store'
 import { sendToAI, getMatchedKnowledge } from './ai'
 import { exportToTxt, exportToWord } from './export'
@@ -7,17 +7,48 @@ import { Knowledge } from './Knowledge'
 import './App.css'
 
 function App() {
-  const { docs, currentDocId, messages, aiSettings, knowledge, addDoc, updateDoc, renameDoc, deleteDoc, setCurrentDoc, addMessage, clearMessages, updateAISettings, appendToKnowledge } = useStore()
+  const { docs, currentDocId, messages, aiSettings, knowledge, externalKnowledge, addDoc, updateDoc, renameDoc, deleteDoc, setCurrentDoc, addMessage, clearMessages, updateAISettings, appendToKnowledge, setExternalKnowledge, clearExternalKnowledge } = useStore()
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showKnowledge, setShowKnowledge] = useState(false)
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [saveDropdown, setSaveDropdown] = useState<string | null>(null)
+  const [storageUsage, setStorageUsage] = useState('')
 
   const currentDoc = getCurrentDoc()
   const matchedKnowledge = input ? getMatchedKnowledge(input) : []
 
+  // 检测存储使用量
+  useEffect(() => {
+    const data = localStorage.getItem('writing-assistant-store') || ''
+    const sizeKB = (data.length / 1024).toFixed(1)
+    const sizeMB = (data.length / 1024 / 1024).toFixed(2)
+    setStorageUsage(data.length > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`)
+  }, [docs, knowledge])
+
+  // 加载外部知识库
+  const loadExternalKnowledge = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        const text = await file.text()
+        try {
+          const data = JSON.parse(text)
+          // 支持两种格式：直接数组 或 {knowledge: [...]}
+          const entries = Array.isArray(data) ? data : (data.state?.knowledge || data.knowledge || [])
+          setExternalKnowledge(entries)
+          alert(`已加载 ${entries.length} 条外部知识库`)
+        } catch {
+          alert('JSON 格式错误')
+        }
+      }
+    }
+    input.click()
+  }
   const handleSend = async () => {
     if (!input.trim() || loading) return
     const userMsg = { role: 'user' as const, content: input }
@@ -132,42 +163,61 @@ function App() {
       {showSettings && (
         <div className="modal-overlay" onClick={() => setShowSettings(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>⚙️ AI 设置</h3>
+            <h3>设置</h3>
             <label>API URL<input value={aiSettings.apiUrl} onChange={(e) => updateAISettings({ apiUrl: e.target.value })} /></label>
             <label>API Key<input type="password" value={aiSettings.apiKey} onChange={(e) => updateAISettings({ apiKey: e.target.value })} /></label>
             <label>模型<input value={aiSettings.model} onChange={(e) => updateAISettings({ model: e.target.value })} /></label>
-            <div className="data-btns">
-              <button type="button" onClick={() => {
-                const data = localStorage.getItem('writing-assistant-store')
-                if (data) {
-                  const blob = new Blob([data], { type: 'application/json' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `写作助手备份_${new Date().toLocaleDateString()}.json`
-                  a.click()
-                }
-              }}>📤 导出数据</button>
-              <button type="button" onClick={() => {
-                const input = document.createElement('input')
-                input.type = 'file'
-                input.accept = '.json'
-                input.onchange = (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onload = () => {
-                      if (confirm('确定导入？这会覆盖当前所有数据！')) {
-                        localStorage.setItem('writing-assistant-store', reader.result as string)
-                        location.reload()
-                      }
-                    }
-                    reader.readAsText(file)
+            
+            <div className="settings-section">
+              <h4>数据管理</h4>
+              <p className="storage-info">存储使用: {storageUsage} / ~5MB</p>
+              <div className="data-btns">
+                <button type="button" onClick={() => {
+                  const data = localStorage.getItem('writing-assistant-store')
+                  if (data) {
+                    const blob = new Blob([data], { type: 'application/json' })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `写作助手备份_${new Date().toLocaleDateString()}.json`
+                    a.click()
                   }
-                }
-                input.click()
-              }}>📥 导入数据</button>
+                }}>导出数据</button>
+                <button type="button" onClick={() => {
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = '.json'
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        if (confirm('确定导入？这会覆盖当前所有数据！')) {
+                          localStorage.setItem('writing-assistant-store', reader.result as string)
+                          location.reload()
+                        }
+                      }
+                      reader.readAsText(file)
+                    }
+                  }
+                  input.click()
+                }}>导入数据</button>
+              </div>
             </div>
+
+            <div className="settings-section">
+              <h4>外部知识库</h4>
+              <p className="hint-text">加载外部 JSON 文件作为临时知识库，不占用浏览器存储</p>
+              {externalKnowledge.length > 0 ? (
+                <div className="external-info">
+                  <span>已加载 {externalKnowledge.length} 条</span>
+                  <button type="button" onClick={clearExternalKnowledge}>卸载</button>
+                </div>
+              ) : (
+                <button type="button" className="load-external-btn" onClick={loadExternalKnowledge}>加载外部知识库</button>
+              )}
+            </div>
+
             <button onClick={() => setShowSettings(false)}>关闭</button>
           </div>
         </div>
