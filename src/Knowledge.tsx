@@ -73,7 +73,11 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
                 <div className="category-header">{category} ({items.length})</div>
                 <ul className="category-items">
                   {items.map(k => (
-                    <li key={k.id} className={k.id === selectedId ? 'active' : ''} onClick={() => { setSelectedId(k.id); setEditing(false) }}>
+                    <li 
+                      key={k.id} 
+                      className={k.id === selectedId ? 'active' : ''} 
+                      onClick={(e) => { e.stopPropagation(); setSelectedId(k.id); setEditing(false) }}
+                    >
                       <span className="entry-title">{k.title}</span>
                     </li>
                   ))}

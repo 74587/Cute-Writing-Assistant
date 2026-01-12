@@ -417,3 +417,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   font-weight: 500;
   margin-top: 8px;
 }
+
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auto-insert-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.auto-insert-toggle input {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.auto-insert-toggle input:checked + span {
+  color: #047857;
+}

@@ -15,6 +15,7 @@ function App() {
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
   const [saveDropdown, setSaveDropdown] = useState<string | null>(null)
   const [storageUsage, setStorageUsage] = useState('')
+  const [autoInsert, setAutoInsert] = useState(false)
 
   const currentDoc = getCurrentDoc()
   const matchedKnowledge = input ? getMatchedKnowledge(input) : []
@@ -58,6 +59,10 @@ function App() {
     try {
       const reply = await sendToAI([...messages, userMsg], aiSettings, currentDoc?.content)
       addMessage({ role: 'assistant', content: reply })
+      // 如果开启了实时写入，自动插入到编辑器
+      if (autoInsert && currentDoc) {
+        updateDoc(currentDoc.id, currentDoc.content + '<p>' + reply.replace(/\n/g, '</p><p>') + '</p>')
+      }
     } catch (err) {
       addMessage({ role: 'assistant', content: `错误: ${err instanceof Error ? err.message : '未知错误'}` })
     }
@@ -120,7 +125,13 @@ function App() {
             <div className="chat-panel">
               <div className="chat-header">
                 <span>🤖 AI 助手</span>
-                <button onClick={clearMessages}>清空</button>
+                <div className="chat-header-actions">
+                  <label className="auto-insert-toggle" title="开启后AI回复自动写入编辑器">
+                    <input type="checkbox" checked={autoInsert} onChange={(e) => setAutoInsert(e.target.checked)} />
+                    <span>实时写入</span>
+                  </label>
+                  <button onClick={clearMessages}>清空</button>
+                </div>
               </div>
               <div className="chat-messages">
                 {messages.length === 0 && (
