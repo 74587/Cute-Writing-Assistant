@@ -117,7 +117,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
           <ul className="knowledge-list">
             {Object.entries(grouped).map(([category, items]) => (
               <li key={category} className="category-group">
-                <div className="category-header">{category} ({items.length})</div>
+                <div className="category-header" onClick={(e) => e.stopPropagation()}>{category} ({items.length})</div>
                 <ul className="category-items">
                   {items.map(k => (
                     <li 
