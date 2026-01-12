@@ -27,9 +27,9 @@ export interface AISettings {
 
 // 知识库条目类型
 export interface KnowledgeEntry {
-  id: string                                              // 唯一标识
-  category: '人物' | '世界观' | '剧情' | '设定' | '其他'   // 分类
-  title: string                                           // 标题
-  keywords: string[]                                      // 关键词列表（用于AI自动匹配）
-  content: string                                         // 详细内容
+  id: string                                                                      // 唯一标识
+  category: '人物简介' | '世界观' | '剧情梗概' | '章节梗概' | '支线伏笔' | '其他'   // 分类
+  title: string                                                                   // 标题
+  keywords: string[]                                                              // 关键词列表（用于AI自动匹配）
+  content: string                                                                 // 详细内容
 }

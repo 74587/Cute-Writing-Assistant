@@ -5,7 +5,7 @@ import { ImportAnalyze } from './ImportAnalyze'
 import { LongTextImport } from './LongTextImport'
 import './Knowledge.css'
 
-const CATEGORIES: KnowledgeEntry['category'][] = ['人物', '世界观', '剧情', '设定', '其他']
+const CATEGORIES: KnowledgeEntry['category'][] = ['人物简介', '世界观', '剧情梗概', '章节梗概', '支线伏笔', '其他']
 
 export function Knowledge({ onClose }: { onClose: () => void }) {
   const { knowledge, addKnowledge, updateKnowledge, deleteKnowledge } = useStore()
@@ -14,7 +14,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
   const [filter, setFilter] = useState<string>('全部')
   const [showImport, setShowImport] = useState(false)
   const [showLongImport, setShowLongImport] = useState(false)
-  const [form, setForm] = useState({ title: '', category: '人物' as KnowledgeEntry['category'], keywords: '', content: '' })
+  const [form, setForm] = useState({ title: '', category: '人物简介' as KnowledgeEntry['category'], keywords: '', content: '' })
 
   const filtered = filter === '全部' ? knowledge : knowledge.filter(k => k.category === filter)
   const selected = knowledge.find(k => k.id === selectedId)
