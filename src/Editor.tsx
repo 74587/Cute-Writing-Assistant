@@ -1,9 +1,10 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import './Editor.css'
 
 interface EditorProps {
   content: string
   onChange: (content: string) => void
+  onSendToAI?: (text: string) => void
 }
 
 function countWords(html: string): number {
@@ -11,9 +12,10 @@ function countWords(html: string): number {
   return text.length
 }
 
-export function Editor({ content, onChange }: EditorProps) {
+export function Editor({ content, onChange, onSendToAI }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isInternalChange = useRef(false)
+  const [selectionPopup, setSelectionPopup] = useState<{ x: number; y: number; text: string } | null>(null)
 
   useEffect(() => {
     if (editorRef.current && !isInternalChange.current) {
@@ -37,6 +39,34 @@ export function Editor({ content, onChange }: EditorProps) {
     handleInput()
   }
 
+  const handleMouseUp = () => {
+    const selection = window.getSelection()
+    const text = selection?.toString().trim()
+    
+    if (text && text.length > 0 && onSendToAI) {
+      const range = selection?.getRangeAt(0)
+      const rect = range?.getBoundingClientRect()
+      if (rect && editorRef.current) {
+        const editorRect = editorRef.current.getBoundingClientRect()
+        setSelectionPopup({
+          x: rect.left - editorRect.left + rect.width / 2,
+          y: rect.top - editorRect.top - 40,
+          text
+        })
+      }
+    } else {
+      setSelectionPopup(null)
+    }
+  }
+
+  const handleSendSelection = () => {
+    if (selectionPopup && onSendToAI) {
+      onSendToAI(selectionPopup.text)
+      setSelectionPopup(null)
+      window.getSelection()?.removeAllRanges()
+    }
+  }
+
   return (
     <div className="editor-wrapper">
       <div className="toolbar">
@@ -56,8 +86,17 @@ export function Editor({ content, onChange }: EditorProps) {
         className="editor-content"
         contentEditable
         onInput={handleInput}
+        onMouseUp={handleMouseUp}
       />
+      {selectionPopup && (
+        <div 
+          className="selection-popup" 
+          style={{ left: selectionPopup.x, top: selectionPopup.y }}
+        >
+          <button onClick={handleSendSelection}>🤖 发给AI</button>
+        </div>
+      )}
       <div className="word-count">{countWords(content)} 字</div>
     </div>
-  )
+  }
 }

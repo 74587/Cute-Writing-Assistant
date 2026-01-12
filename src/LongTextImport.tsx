@@ -63,6 +63,9 @@ export function LongTextImport({ onClose }: { onClose: () => void }) {
   const [progress, setProgress] = useState({ current: 0, total: 0 })
   const [results, setResults] = useState<ExtractedItem[]>([])
   const [error, setError] = useState('')
+  // 断点续传相关状态
+  const [pausedAt, setPausedAt] = useState<number | null>(null)
+  const [cachedChunks, setCachedChunks] = useState<{ content: string; chapter?: string }[]>([])
 
   // 读取文件
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,21 +90,28 @@ export function LongTextImport({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (resumeFrom = 0) => {
     if (!text.trim()) return
     if (!aiSettings.apiKey) {
       setError('请先在 AI设置 中配置 API Key')
       return
     }
 
-    const chunks = splitText(text)
-    setProgress({ current: 0, total: chunks.length })
+    // 如果是续传，使用缓存的chunks；否则重新切分
+    const chunks = resumeFrom > 0 && cachedChunks.length > 0 ? cachedChunks : splitText(text)
+    if (resumeFrom === 0) {
+      setCachedChunks(chunks)
+      setResults([])
+    }
+    
+    setProgress({ current: resumeFrom, total: chunks.length })
     setLoading(true)
     setError('')
+    setPausedAt(null)
     
-    const allResults: ExtractedItem[] = []
+    const allResults: ExtractedItem[] = resumeFrom > 0 ? [...results] : []
 
-    for (let i = 0; i < chunks.length; i++) {
+    for (let i = resumeFrom; i < chunks.length; i++) {
       setProgress({ current: i + 1, total: chunks.length })
       
       try {
@@ -127,15 +137,30 @@ ${chunks[i].content}`
           })
         })
         
+        if (!res.ok) {
+          throw new Error(`API 错误: ${res.status} ${res.statusText}`)
+        }
+        
         const data = await res.json()
+        if (data.error) {
+          throw new Error(data.error.message || 'API 返回错误')
+        }
+        
         const content = data.choices?.[0]?.message?.content || '[]'
         const match = content.match(/\[[\s\S]*\]/)
         if (match) {
           const items = JSON.parse(match[0]) as ExtractedItem[]
           allResults.push(...items)
+          setResults([...allResults]) // 实时更新结果
         }
       } catch (e) {
         console.error('分析第', i + 1, '段失败:', e)
+        // 保存断点，允许续传
+        setError(`第 ${i + 1} 段分析失败: ${e instanceof Error ? e.message : '未知错误'}`)
+        setPausedAt(i)
+        setResults(allResults)
+        setLoading(false)
+        return
       }
       
       // 避免请求太快
@@ -144,6 +169,8 @@ ${chunks[i].content}`
 
     setResults(allResults)
     setLoading(false)
+    setCachedChunks([])
+    setPausedAt(null)
   }
 
   // 合并相同标题的条目
@@ -202,8 +229,18 @@ ${chunks[i].content}`
                 <span className="progress">
                   正在分析第 {progress.current}/{progress.total} 段...
                 </span>
+              ) : pausedAt !== null ? (
+                <div className="resume-section">
+                  <span className="pause-info">已完成 {pausedAt}/{cachedChunks.length} 段，已提取 {results.length} 条</span>
+                  <button className="btn-resume" onClick={() => handleAnalyze(pausedAt)}>
+                    继续分析
+                  </button>
+                  <button className="btn-restart" onClick={() => { setPausedAt(null); setResults([]); setCachedChunks([]); setError('') }}>
+                    重新开始
+                  </button>
+                </div>
               ) : (
-                <button className="btn-analyze" onClick={handleAnalyze} disabled={!text.trim()}>
+                <button className="btn-analyze" onClick={() => handleAnalyze(0)} disabled={!text.trim()}>
                   开始分析
                 </button>
               )}

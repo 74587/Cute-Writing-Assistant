@@ -19,6 +19,13 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
   const filtered = filter === '全部' ? knowledge : knowledge.filter(k => k.category === filter)
   const selected = knowledge.find(k => k.id === selectedId)
 
+  // 按分类分组
+  const grouped = CATEGORIES.reduce((acc, cat) => {
+    const items = filtered.filter(k => k.category === cat)
+    if (items.length > 0) acc[cat] = items
+    return acc
+  }, {} as Record<string, typeof knowledge>)
+
   const handleNew = () => {
     setSelectedId(null)
     setForm({ title: '', category: '人物', keywords: '', content: '' })
@@ -61,10 +68,16 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
             ))}
           </div>
           <ul className="knowledge-list">
-            {filtered.map(k => (
-              <li key={k.id} className={k.id === selectedId ? 'active' : ''} onClick={() => { setSelectedId(k.id); setEditing(false) }}>
-                <span className="entry-category">{k.category}</span>
-                <span className="entry-title">{k.title}</span>
+            {Object.entries(grouped).map(([category, items]) => (
+              <li key={category} className="category-group">
+                <div className="category-header">{category} ({items.length})</div>
+                <ul className="category-items">
+                  {items.map(k => (
+                    <li key={k.id} className={k.id === selectedId ? 'active' : ''} onClick={() => { setSelectedId(k.id); setEditing(false) }}>
+                      <span className="entry-title">{k.title}</span>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
             {filtered.length === 0 && <li className="empty">暂无条目</li>}

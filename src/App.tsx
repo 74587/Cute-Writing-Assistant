@@ -111,7 +111,11 @@ function App() {
         {currentDoc ? (
           <>
             <div className="editor-panel">
-              <Editor content={currentDoc.content} onChange={(val) => updateDoc(currentDoc.id, val)} />
+              <Editor 
+                content={currentDoc.content} 
+                onChange={(val) => updateDoc(currentDoc.id, val)} 
+                onSendToAI={(text) => setInput(text)}
+              />
             </div>
             <div className="chat-panel">
               <div className="chat-header">
@@ -161,9 +165,12 @@ function App() {
       </main>
 
       {showSettings && (
-        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+        <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>设置</h3>
+            <div className="modal-header">
+              <h3>设置</h3>
+              <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
+            </div>
             <label>API URL<input value={aiSettings.apiUrl} onChange={(e) => updateAISettings({ apiUrl: e.target.value })} /></label>
             <label>API Key<input type="password" value={aiSettings.apiKey} onChange={(e) => updateAISettings({ apiKey: e.target.value })} /></label>
             <label>模型<input value={aiSettings.model} onChange={(e) => updateAISettings({ model: e.target.value })} /></label>
@@ -219,7 +226,7 @@ function App() {
               )}
             </div>
 
-            <button onClick={() => setShowSettings(false)}>关闭</button>
+            <button className="modal-main-btn" onClick={() => setShowSettings(false)}>关闭</button>
           </div>
         </div>
       )}

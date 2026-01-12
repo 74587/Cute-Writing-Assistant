@@ -68,18 +68,40 @@
   list-style: none;
   padding: 8px;
 }
-.knowledge-list li {
-  padding: 12px;
+.knowledge-list > li.category-group {
+  padding: 0;
+  cursor: default;
+}
+.knowledge-list > li.category-group:hover {
+  background: transparent;
+}
+.category-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  padding: 10px 12px 6px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.category-items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+.category-items li {
+  padding: 10px 12px;
   cursor: pointer;
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  font-size: 14px;
 }
-.knowledge-list li:hover { background: #f1f5f9; }
-.knowledge-list li.active { background: #dcfce7; }
-.knowledge-list li.empty { color: #9ca3af; text-align: center; }
-.entry-category { font-size: 11px; color: #059669; }
+.category-items li:hover { background: #f1f5f9; }
+.category-items li.active { background: #dcfce7; }
+.knowledge-list li.empty { 
+  color: #9ca3af; 
+  text-align: center; 
+  padding: 20px;
+}
 .entry-title { font-size: 14px; }
 
 .knowledge-detail {
