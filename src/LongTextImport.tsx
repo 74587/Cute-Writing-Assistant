@@ -13,49 +13,98 @@ interface ExtractedItem {
 }
 
 // 按章节或段落切分文本，每段不超过 maxLen 字
-function splitText(text: string, maxLen = 3000): { content: string; chapter?: string }[] {
+function splitText(text: string, maxLen = 1500): { content: string; chapter?: string }[] {
   const chunks: { content: string; chapter?: string }[] = []
   
-  // 匹配章节标题
-  const chapterPattern = /(第[一二三四五六七八九十百千\d]+章[^\n]*|Chapter\s*\d+[^\n]*)/gi
-  const parts = text.split(chapterPattern)
+  // 更广泛的章节标题匹配模式
+  const chapterPatterns = [
+    /(第[一二三四五六七八九十百千\d]+章[^\n]*)/gi,
+    /(Chapter\s*\d+[^\n]*)/gi,
+    /([第]?\d+[章节][^\n]*)/gi,
+    /(序章|楔子|尾声|后记|番外[^\n]*)/gi
+  ]
   
-  let currentChapter = ''
+  // 先尝试按章节分割
+  let bestSplit = null
+  let maxChapters = 0
   
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i].trim()
-    if (!part) continue
-    
-    // 检查是否是章节标题
-    if (chapterPattern.test(part)) {
-      chapterPattern.lastIndex = 0 // 重置正则
-      currentChapter = part
-      continue
-    }
-    
-    if (part.length < 50) continue
-    
-    if (part.length <= maxLen) {
-      chunks.push({ content: part, chapter: currentChapter || undefined })
-    } else {
-      // 内容太长，按段落再分
-      const paragraphs = part.split(/\n\n+/)
-      let current = ''
-      for (const p of paragraphs) {
-        if ((current + p).length > maxLen && current) {
-          chunks.push({ content: current.trim(), chapter: currentChapter || undefined })
-          current = p
-        } else {
-          current += '\n\n' + p
-        }
-      }
-      if (current.trim().length > 50) {
-        chunks.push({ content: current.trim(), chapter: currentChapter || undefined })
-      }
+  for (const pattern of chapterPatterns) {
+    pattern.lastIndex = 0
+    const matches = text.match(pattern)
+    if (matches && matches.length > maxChapters) {
+      maxChapters = matches.length
+      bestSplit = pattern
     }
   }
   
-  return chunks
+  if (bestSplit && maxChapters > 1) {
+    // 按最佳章节模式分割
+    bestSplit.lastIndex = 0
+    const parts = text.split(bestSplit)
+    let currentChapter = ''
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim()
+      if (!part) continue
+      
+      // 检查是否是章节标题
+      if (bestSplit.test(part)) {
+        bestSplit.lastIndex = 0
+        currentChapter = part
+        continue
+      }
+      
+      // 过滤掉明显的元数据和统计信息
+      if (part.includes('总字数') || part.includes('章节数') || 
+          part.includes('更新至') || part.includes('预计') ||
+          part.length < 100) continue
+      
+      // 分段处理
+      if (part.length <= maxLen) {
+        chunks.push({ content: part, chapter: currentChapter || undefined })
+      } else {
+        // 按段落细分
+        const paragraphs = part.split(/\n\s*\n/)
+        let current = ''
+        for (const p of paragraphs) {
+          if ((current + p).length > maxLen && current.trim()) {
+            chunks.push({ content: current.trim(), chapter: currentChapter || undefined })
+            current = p
+          } else {
+            current += (current ? '\n\n' : '') + p
+          }
+        }
+        if (current.trim().length > 100) {
+          chunks.push({ content: current.trim(), chapter: currentChapter || undefined })
+        }
+      }
+    }
+  } else {
+    // 没有明显章节结构，按段落分割
+    const paragraphs = text.split(/\n\s*\n/)
+    let current = ''
+    
+    for (const p of paragraphs) {
+      const trimmed = p.trim()
+      // 跳过元数据
+      if (trimmed.includes('总字数') || trimmed.includes('章节数') || 
+          trimmed.includes('更新至') || trimmed.includes('预计') ||
+          trimmed.length < 50) continue
+          
+      if ((current + trimmed).length > maxLen && current.trim()) {
+        chunks.push({ content: current.trim() })
+        current = trimmed
+      } else {
+        current += (current ? '\n\n' : '') + trimmed
+      }
+    }
+    
+    if (current.trim().length > 100) {
+      chunks.push({ content: current.trim() })
+    }
+  }
+  
+  return chunks.filter(chunk => chunk.content.length > 100)
 }
 
 export function LongTextImport({ onClose }: { onClose: () => void }) {
