@@ -4,6 +4,24 @@
  */
 import { saveAs } from 'file-saver'
 
+function sanitizeFileName(name: string): string {
+  const cleaned = name
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[. ]+$/g, '')
+  return cleaned || 'document'
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 /**
  * 将 HTML 内容转换为纯文本
  * @param html HTML字符串
@@ -30,8 +48,9 @@ function htmlToPlainText(html: string): string {
  */
 export function exportToTxt(title: string, content: string) {
   const text = htmlToPlainText(content)
+  const safeTitle = sanitizeFileName(title)
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-  saveAs(blob, `${title}.txt`)
+  saveAs(blob, `${safeTitle}.txt`)
 }
 
 /**
@@ -40,14 +59,15 @@ export function exportToTxt(title: string, content: string) {
  * @param content HTML内容
  */
 export function exportToWord(title: string, content: string) {
+  const safeTitle = sanitizeFileName(title)
   // 使用 HTML 格式创建 Word 文档
   const html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" 
           xmlns:w="urn:schemas-microsoft-com:office:word">
-    <head><meta charset="utf-8"><title>${title}</title></head>
+    <head><meta charset="utf-8"><title>${escapeHtml(safeTitle)}</title></head>
     <body>${content}</body>
     </html>
   `
   const blob = new Blob([html], { type: 'application/msword' })
-  saveAs(blob, `${title}.doc`)
+  saveAs(blob, `${safeTitle}.doc`)
 }

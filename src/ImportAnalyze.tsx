@@ -80,7 +80,13 @@ ${text}`
           }]
         })
       })
+      if (!res.ok) {
+        throw new Error(`API 错误: ${res.status} ${res.statusText}`)
+      }
       const data = await res.json()
+      if (data.error) {
+        throw new Error(data.error.message || 'API 返回错误')
+      }
       const rawContent = data.choices?.[0]?.message?.content || ''
       const cleanedContent = cleanAIResponse(rawContent)
       const match = cleanedContent.match(/\[[\s\S]*\]/)

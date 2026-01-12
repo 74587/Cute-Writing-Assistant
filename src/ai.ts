@@ -15,10 +15,16 @@ import { useStore } from './store'
 export function getMatchedKnowledge(text: string): KnowledgeEntry[] {
   const { knowledge, externalKnowledge } = useStore.getState()
   const allKnowledge = [...knowledge, ...externalKnowledge]
+  const normalizedText = text.toLowerCase()
   return allKnowledge.filter((k) => {
     // 防御性检查：确保 keywords 存在且为数组
     const keywords = Array.isArray(k.keywords) ? k.keywords : []
-    return keywords.some((kw) => text.toLowerCase().includes(kw.toLowerCase()))
+    return keywords.some((kw) => {
+      if (typeof kw !== 'string') return false
+      const keyword = kw.trim()
+      if (!keyword) return false
+      return normalizedText.includes(keyword.toLowerCase())
+    })
   })
 }
 
