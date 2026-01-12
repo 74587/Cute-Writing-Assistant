@@ -97,9 +97,15 @@
   cursor: pointer;
   border-radius: 8px;
   font-size: 14px;
+  transition: background-color 0.15s ease;
 }
-.category-items li:hover { background: #f1f5f9; }
-.category-items li.active { background: #dcfce7; }
+.category-items li:hover { 
+  background: #f1f5f9; 
+}
+.category-items li.active { 
+  background: #dcfce7 !important;
+  border: 1px solid #34d399;
+}
 .knowledge-list li.empty { 
   color: #9ca3af; 
   text-align: center; 

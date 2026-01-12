@@ -195,20 +195,17 @@ ${chunks[i].content}`
     setPausedAt(null)
   }
 
-  // 合并相同标题的条目
-  const mergedResults = results.reduce((acc, item) => {
-    const existing = acc.find(a => a.title === item.title && a.category === item.category)
-    if (existing) {
-      existing.content += '\n\n' + item.content
-      existing.keywords = [...new Set([...existing.keywords, ...item.keywords])]
-    } else {
-      acc.push({ ...item })
-    }
-    return acc
-  }, [] as ExtractedItem[])
+  // 不自动合并，显示所有提取的条目
+  const mergedResults = results.map((item, index) => ({
+    ...item,
+    // 如果标题重复，添加序号区分
+    title: results.filter((r, i) => i <= index && r.title === item.title && r.category === item.category).length > 1 
+      ? `${item.title} (${results.filter((r, i) => i <= index && r.title === item.title && r.category === item.category).length})`
+      : item.title
+  }))
 
-  const handleImport = () => {
-    mergedResults.forEach(item => {
+  const handleImport = async () => {
+    for (const item of mergedResults) {
       // 创建空的details结构，将content放入第一个字段
       const details = createEmptyDetails(item.category)
       const firstKey = Object.keys(details)[0]
@@ -222,7 +219,10 @@ ${chunks[i].content}`
         keywords: item.keywords,
         details: details
       })
-    })
+      
+      // 添加小延迟确保ID不重复
+      await new Promise(r => setTimeout(r, 1))
+    }
     onClose()
   }
 

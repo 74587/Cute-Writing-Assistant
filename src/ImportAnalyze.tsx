@@ -69,8 +69,9 @@ ${text}`
     setLoading(false)
   }
 
-  const handleImport = () => {
-    entries.filter(e => e.selected).forEach(e => {
+  const handleImport = async () => {
+    const selectedEntries = entries.filter(e => e.selected)
+    for (const e of selectedEntries) {
       // 创建空的details结构，将content放入第一个字段
       const details = createEmptyDetails(e.category)
       const firstKey = Object.keys(details)[0]
@@ -84,7 +85,10 @@ ${text}`
         keywords: e.keywords, 
         details: details 
       })
-    })
+      
+      // 添加小延迟确保ID不重复
+      await new Promise(r => setTimeout(r, 1))
+    }
     onClose()
   }
 

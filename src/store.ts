@@ -112,7 +112,7 @@ export const useStore = create<Store>()(
       // 添加知识库条目
       addKnowledge: (entry) =>
         set((s) => ({
-          knowledge: [...s.knowledge, { ...entry, id: Date.now().toString() }],
+          knowledge: [...s.knowledge, { ...entry, id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}` }],
         })),
 
       // 更新知识库条目
