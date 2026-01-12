@@ -37,7 +37,7 @@ export async function sendToAI(
   const matched = getMatchedKnowledge(lastUserMsg)
 
   // 构建系统提示词
-  let systemPrompt = `你是一个专业的小说写作助手。帮助用户进行创作、润色、分析角色、构思情节等。
+  let systemPrompt = settings.systemPrompt || `你是一个专业的小说写作助手。帮助用户进行创作、润色、分析角色、构思情节等。
 回答要简洁实用，直接给出建议或修改后的内容。`
 
   // 如果匹配到知识库条目，添加到提示词中

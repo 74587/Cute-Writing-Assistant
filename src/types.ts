@@ -19,9 +19,10 @@ export interface Message {
 
 // AI设置类型
 export interface AISettings {
-  apiUrl: string   // API地址（兼容OpenAI格式）
-  apiKey: string   // API密钥
-  model: string    // 模型名称
+  apiUrl: string        // API地址（兼容OpenAI格式）
+  apiKey: string        // API密钥
+  model: string         // 模型名称
+  systemPrompt: string  // 自定义系统提示词
 }
 
 // 知识库条目类型

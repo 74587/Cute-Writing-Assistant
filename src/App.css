@@ -364,3 +364,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 .load-external-btn:hover {
   background: #dcfce7;
 }
+
+
+.system-prompt-input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 13px;
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+.system-prompt-input:focus {
+  outline: none;
+  border-color: #34d399;
+}

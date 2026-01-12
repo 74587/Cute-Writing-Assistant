@@ -54,6 +54,7 @@ export const useStore = create<Store>()(
         apiUrl: 'https://api.openai.com/v1/chat/completions',
         apiKey: '',
         model: 'gpt-4o-mini',
+        systemPrompt: '你是一个专业的小说写作助手。帮助用户进行创作、润色、分析角色、构思情节等。\n回答要简洁实用，直接给出建议或修改后的内容。',
       },
       knowledge: [],
       externalKnowledge: [],
@@ -151,6 +152,7 @@ export const useStore = create<Store>()(
         aiSettings: {
           apiUrl: state.aiSettings.apiUrl,
           model: state.aiSettings.model,
+          systemPrompt: state.aiSettings.systemPrompt,
           // apiKey 故意不持久化，每次启动需重新输入
         },
         knowledge: state.knowledge,

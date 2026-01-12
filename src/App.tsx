@@ -167,6 +167,7 @@ function App() {
             <label>API URL<input value={aiSettings.apiUrl} onChange={(e) => updateAISettings({ apiUrl: e.target.value })} /></label>
             <label>API Key<input type="password" value={aiSettings.apiKey} onChange={(e) => updateAISettings({ apiKey: e.target.value })} /></label>
             <label>模型<input value={aiSettings.model} onChange={(e) => updateAISettings({ model: e.target.value })} /></label>
+            <label>系统提示词<textarea className="system-prompt-input" value={aiSettings.systemPrompt} onChange={(e) => updateAISettings({ systemPrompt: e.target.value })} placeholder="自定义AI助手的角色和行为..." /></label>
             
             <div className="settings-section">
               <h4>数据管理</h4>
