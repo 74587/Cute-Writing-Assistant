@@ -140,12 +140,50 @@ export async function sendToAI(
   }
 
   // 如果匹配到知识库条目，添加详细信息
+  // 使用分级策略：高相关显示完整内容，低相关显示摘要
   if (matched.length > 0) {
     systemPrompt += '\n\n以下是与问题相关的详细设定资料：\n'
-    matched.slice(0, 10).forEach((k) => {  // 限制最多10个条目避免超长
+
+    // 计算可用的字符预算（留出空间给其他内容）
+    const maxTotalChars = 50000  // 约 25000 tokens
+    let usedChars = 0
+
+    // 前10个条目显示完整内容
+    const fullDetailEntries = matched.slice(0, 10)
+    // 后续条目显示摘要
+    const summaryEntries = matched.slice(10, 30)
+
+    // 添加完整详情
+    fullDetailEntries.forEach((k) => {
       const detailsText = formatKnowledgeDetails(k)
-      systemPrompt += `\n【${k.category}】${k.title}：\n${detailsText}\n`
+      const entryText = `\n【${k.category}】${k.title}：\n${detailsText}\n`
+      if (usedChars + entryText.length < maxTotalChars) {
+        systemPrompt += entryText
+        usedChars += entryText.length
+      }
     })
+
+    // 如果还有更多条目，添加摘要
+    if (summaryEntries.length > 0 && usedChars < maxTotalChars - 2000) {
+      systemPrompt += '\n\n【更多相关条目摘要】\n'
+      summaryEntries.forEach((k) => {
+        const detailsText = formatKnowledgeDetails(k)
+        // 只取前200字作为摘要
+        const summary = detailsText.length > 200
+          ? detailsText.slice(0, 200) + '...'
+          : detailsText
+        const entryText = `• ${k.category} - ${k.title}: ${summary.replace(/\n/g, ' ')}\n`
+        if (usedChars + entryText.length < maxTotalChars) {
+          systemPrompt += entryText
+          usedChars += entryText.length
+        }
+      })
+    }
+
+    // 如果还有更多未显示的条目，告知AI
+    if (matched.length > 30) {
+      systemPrompt += `\n（注：还有 ${matched.length - 30} 个相关条目未显示）`
+    }
   }
 
   // 如果有当前文档内容，添加到提示词中（限制长度避免超出token限制）
