@@ -1,0 +1,240 @@
+.merge-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 120;
+}
+
+.merge-container {
+    width: 700px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.merge-container h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.merge-container .hint {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.merge-container .hint strong {
+    color: #059669;
+}
+
+.merge-options {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #f0fdf4;
+    border-radius: 8px;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.checkbox-option input {
+    width: 16px;
+    height: 16px;
+    accent-color: #34d399;
+}
+
+.no-duplicates {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+.no-duplicates p {
+    font-size: 18px;
+    color: #059669;
+    margin-bottom: 8px;
+}
+
+.no-duplicates .hint {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.duplicate-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+}
+
+.duplicate-group {
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.duplicate-group:hover {
+    background: #f0fdf4;
+}
+
+.duplicate-group.selected {
+    border-color: #34d399;
+    background: #f0fdf4;
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.group-name {
+    font-weight: 600;
+    font-size: 15px;
+    flex: 1;
+}
+
+.group-count {
+    font-size: 12px;
+    color: #9ca3af;
+    background: #e5e7eb;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.category-tag {
+    background: #dcfce7;
+    color: #047857;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.group-entries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.entry-chip {
+    background: white;
+    border: 1px solid #d1d5db;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.group-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-merge {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #6ee7b7, #34d399);
+    color: #065f46;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-merge:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+}
+
+.btn-merge:hover:not(:disabled) {
+    background: linear-gradient(135deg, #34d399, #10b981);
+}
+
+.merge-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-merge-all {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #6ee7b7, #34d399);
+    color: #065f46;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-merge-all:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+}
+
+.error-msg {
+    color: #dc2626;
+    font-size: 13px;
+    padding: 10px;
+    background: #fef2f2;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.success-msg {
+    color: #059669;
+    font-size: 13px;
+    padding: 10px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.btn-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #9ca3af;
+}
+
+.btn-close:hover {
+    color: #1f2937;
+}

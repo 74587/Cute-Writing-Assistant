@@ -4,10 +4,11 @@ import type { KnowledgeCategory } from './types'
 import { CATEGORY_FIELDS, createEmptyDetails } from './types'
 import { ImportAnalyze } from './ImportAnalyze'
 import { LongTextImport } from './LongTextImport'
+import { MergeDuplicates } from './MergeDuplicates'
 import './Knowledge.css'
 
 const CATEGORIES: KnowledgeCategory[] = [
-  '人物简介', '世界观', '剧情梗概', '章节梗概', 
+  '人物简介', '世界观', '剧情梗概', '章节梗概',
   '支线伏笔', '道具物品', '场景地点', '时间线', '写作素材'
 ]
 
@@ -18,6 +19,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
   const [filter, setFilter] = useState<string>('全部')
   const [showImport, setShowImport] = useState(false)
   const [showLongImport, setShowLongImport] = useState(false)
+  const [showMerge, setShowMerge] = useState(false)
   const [form, setForm] = useState<{
     title: string
     category: KnowledgeCategory
@@ -103,6 +105,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
           <div className="knowledge-header">
             <h3>知识库</h3>
             <div className="header-actions">
+              <button className="btn-merge-dup" onClick={() => setShowMerge(true)}>合并</button>
               <button className="btn-import" onClick={() => setShowLongImport(true)}>长文</button>
               <button className="btn-import" onClick={() => setShowImport(true)}>导入</button>
               <button className="btn-new" onClick={handleNew}>+ 新建</button>
@@ -120,9 +123,9 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
                 <div className="category-header" onClick={(e) => e.stopPropagation()}>{category} ({items.length})</div>
                 <ul className="category-items">
                   {items.map(k => (
-                    <li 
-                      key={k.id} 
-                      className={k.id === selectedId ? 'active' : ''} 
+                    <li
+                      key={k.id}
+                      className={k.id === selectedId ? 'active' : ''}
                       onClick={(e) => { e.stopPropagation(); setSelectedId(k.id); setEditing(false) }}
                     >
                       <span className="entry-title">{k.title}</span>
@@ -149,7 +152,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
                 <div className="form-row">
                   <label className="form-label-inline">
                     标题
-                    <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+                    <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
                   </label>
                   <label className="form-label-inline">
                     分类
@@ -160,23 +163,23 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
                 </div>
                 <label>
                   关键词 (逗号分隔)
-                  <input value={form.keywords} onChange={e => setForm({...form, keywords: e.target.value})} />
+                  <input value={form.keywords} onChange={e => setForm({ ...form, keywords: e.target.value })} />
                 </label>
                 <div className="detail-fields">
                   {currentFields.map(field => (
                     <label key={field.key} className="detail-field">
                       <span className="field-label">{field.label}</span>
                       {field.key === 'status' ? (
-                        <select 
-                          value={form.details[field.key] || '未揭示'} 
+                        <select
+                          value={form.details[field.key] || '未揭示'}
                           onChange={e => handleDetailChange(field.key, e.target.value)}
                         >
                           <option value="未揭示">未揭示</option>
                           <option value="已揭示">已揭示</option>
                         </select>
                       ) : (
-                        <textarea 
-                          value={form.details[field.key] || ''} 
+                        <textarea
+                          value={form.details[field.key] || ''}
                           onChange={e => handleDetailChange(field.key, e.target.value)}
                           placeholder={`输入${field.label}...`}
                         />
@@ -221,6 +224,7 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
       </div>
       {showImport && <ImportAnalyze onClose={() => setShowImport(false)} />}
       {showLongImport && <LongTextImport onClose={() => setShowLongImport(false)} />}
+      {showMerge && <MergeDuplicates onClose={() => setShowMerge(false)} />}
     </div>
   )
 }
