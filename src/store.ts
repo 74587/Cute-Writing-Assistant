@@ -127,12 +127,19 @@ export const useStore = create<Store>()(
       deleteKnowledge: (id) =>
         set((s) => ({ knowledge: s.knowledge.filter((k) => k.id !== id) })),
 
-      // 追加内容到知识库条目
+      // 追加内容到知识库条目（追加到第一个文本字段）
       appendToKnowledge: (id, content) =>
         set((s) => ({
-          knowledge: s.knowledge.map((k) =>
-            k.id === id ? { ...k, content: k.content + '\n\n---\n\n' + content } : k
-          ),
+          knowledge: s.knowledge.map((k) => {
+            if (k.id !== id) return k
+            const details = { ...k.details } as Record<string, string>
+            // 找到第一个文本字段追加内容
+            const firstKey = Object.keys(details)[0]
+            if (firstKey) {
+              details[firstKey] = (details[firstKey] || '') + '\n\n---\n\n' + content
+            }
+            return { ...k, details }
+          }),
         })),
 
       // 设置外部知识库（从JSON文件加载）

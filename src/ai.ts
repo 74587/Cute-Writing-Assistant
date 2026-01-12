@@ -3,6 +3,7 @@
  * 处理与 AI API 的通信，以及知识库匹配
  */
 import type { Message, AISettings, KnowledgeEntry } from './types'
+import { CATEGORY_FIELDS } from './types'
 import { useStore } from './store'
 
 /**
@@ -19,6 +20,24 @@ export function getMatchedKnowledge(text: string): KnowledgeEntry[] {
     const keywords = Array.isArray(k.keywords) ? k.keywords : []
     return keywords.some((kw) => text.toLowerCase().includes(kw.toLowerCase()))
   })
+}
+
+/**
+ * 将知识库条目的details转换为可读文本
+ */
+function formatKnowledgeDetails(entry: KnowledgeEntry): string {
+  const fields = CATEGORY_FIELDS[entry.category]
+  const details = entry.details as unknown as Record<string, string>
+  const parts: string[] = []
+  
+  fields.forEach(field => {
+    const value = details[field.key]
+    if (value && value.trim()) {
+      parts.push(`${field.label}：${value}`)
+    }
+  })
+  
+  return parts.join('\n')
 }
 
 /**
@@ -44,7 +63,8 @@ export async function sendToAI(
   if (matched.length > 0) {
     systemPrompt += '\n\n以下是相关的设定资料，请参考：\n'
     matched.forEach((k) => {
-      systemPrompt += `\n【${k.category}】${k.title}：\n${k.content}\n`
+      const detailsText = formatKnowledgeDetails(k)
+      systemPrompt += `\n【${k.category}】${k.title}：\n${detailsText}\n`
     })
   }
 

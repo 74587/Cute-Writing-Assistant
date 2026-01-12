@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useStore } from './store'
+import { createEmptyDetails } from './types'
+import type { KnowledgeCategory } from './types'
 import mammoth from 'mammoth'
 import './LongTextImport.css'
 
 interface ExtractedItem {
-  category: '人物简介' | '世界观' | '剧情梗概' | '章节梗概' | '支线伏笔' | '其他'
+  category: KnowledgeCategory
   title: string
   keywords: string[]
-  content: string
+  content: string  // AI返回的是纯文本，导入时转换为details结构
 }
 
 // 按章节或段落切分文本，每段不超过 maxLen 字
@@ -128,20 +130,22 @@ export function LongTextImport({ onClose }: { onClose: () => void }) {
               role: 'user',
               content: `你是一个专业的小说分析师。请仔细分析以下小说片段，深入提取其中的信息。
 
-分类说明：
+分类说明（只能使用以下分类）：
 1. 人物简介：人物姓名、外貌特征、性格特点、背景故事、人际关系、能力技能、生平经历等
 2. 世界观：世界背景、历史、规则体系、势力分布、地理环境、特殊设定、术语解释等
 3. 剧情梗概：主线故事发展、核心冲突、重大转折点等（整体性的剧情走向）
 4. 章节梗概：当前章节的具体事件、场景描写、情节发展等
 5. 支线伏笔：暗示、伏笔、未解之谜、潜在线索、可能的后续发展等
-6. 其他：不属于以上分类的重要信息
+6. 道具物品：重要道具、武器、信物等的详细设定
+7. 场景地点：重要场景的详细描写
+8. 时间线：故事的时间轴事件
+9. 写作素材：灵感、参考资料、待用片段等
 
 要求：
 - 请尽可能详细地描述每个条目，content 字段至少100字以上
 - 关键词要包含人名、地名、术语等便于后续检索的词汇
-- 人物简介要包含：生平小传、技能能力、性格特征、重要关系等
 
-返回JSON数组格式：[{"category":"人物简介|世界观|剧情梗概|章节梗概|支线伏笔|其他","title":"名称","keywords":["关键词1","关键词2"],"content":"详细描述（至少100字）"}]
+返回JSON数组格式：[{"category":"人物简介|世界观|剧情梗概|章节梗概|支线伏笔|道具物品|场景地点|时间线|写作素材","title":"名称","keywords":["关键词1","关键词2"],"content":"详细描述（至少100字）"}]
 只返回JSON数组，不要其他内容。如果没有可提取的内容，返回空数组 []
 ${chapterHint}
 文本片段：
@@ -200,11 +204,18 @@ ${chunks[i].content}`
 
   const handleImport = () => {
     mergedResults.forEach(item => {
+      // 创建空的details结构，将content放入第一个字段
+      const details = createEmptyDetails(item.category) as Record<string, string>
+      const firstKey = Object.keys(details)[0]
+      if (firstKey) {
+        details[firstKey] = item.content
+      }
+      
       addKnowledge({
         category: item.category,
         title: item.title,
         keywords: item.keywords,
-        content: item.content
+        details: details
       })
     })
     onClose()

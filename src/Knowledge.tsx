@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { useStore } from './store'
-import type { KnowledgeEntry } from './types'
+import type { KnowledgeEntry, KnowledgeCategory } from './types'
+import { CATEGORY_FIELDS, createEmptyDetails } from './types'
 import { ImportAnalyze } from './ImportAnalyze'
 import { LongTextImport } from './LongTextImport'
 import './Knowledge.css'
 
-const CATEGORIES: KnowledgeEntry['category'][] = ['人物简介', '世界观', '剧情梗概', '章节梗概', '支线伏笔', '其他']
+const CATEGORIES: KnowledgeCategory[] = [
+  '人物简介', '世界观', '剧情梗概', '章节梗概', 
+  '支线伏笔', '道具物品', '场景地点', '时间线', '写作素材'
+]
 
 export function Knowledge({ onClose }: { onClose: () => void }) {
   const { knowledge, addKnowledge, updateKnowledge, deleteKnowledge } = useStore()
@@ -14,7 +18,17 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
   const [filter, setFilter] = useState<string>('全部')
   const [showImport, setShowImport] = useState(false)
   const [showLongImport, setShowLongImport] = useState(false)
-  const [form, setForm] = useState({ title: '', category: '人物简介' as KnowledgeEntry['category'], keywords: '', content: '' })
+  const [form, setForm] = useState<{
+    title: string
+    category: KnowledgeCategory
+    keywords: string
+    details: Record<string, string>
+  }>({
+    title: '',
+    category: '人物简介',
+    keywords: '',
+    details: createEmptyDetails('人物简介') as Record<string, string>
+  })
 
   const filtered = filter === '全部' ? knowledge : knowledge.filter(k => k.category === filter)
   const selected = knowledge.find(k => k.id === selectedId)
@@ -28,19 +42,49 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
 
   const handleNew = () => {
     setSelectedId(null)
-    setForm({ title: '', category: '人物', keywords: '', content: '' })
+    setForm({
+      title: '',
+      category: '人物简介',
+      keywords: '',
+      details: createEmptyDetails('人物简介') as Record<string, string>
+    })
     setEditing(true)
   }
 
   const handleEdit = () => {
     if (selected) {
-      setForm({ title: selected.title, category: selected.category, keywords: selected.keywords.join(', '), content: selected.content })
+      setForm({
+        title: selected.title,
+        category: selected.category,
+        keywords: selected.keywords.join(', '),
+        details: selected.details as Record<string, string>
+      })
       setEditing(true)
     }
   }
 
+  const handleCategoryChange = (newCategory: KnowledgeCategory) => {
+    setForm({
+      ...form,
+      category: newCategory,
+      details: createEmptyDetails(newCategory) as Record<string, string>
+    })
+  }
+
+  const handleDetailChange = (key: string, value: string) => {
+    setForm({
+      ...form,
+      details: { ...form.details, [key]: value }
+    })
+  }
+
   const handleSave = () => {
-    const entry = { ...form, keywords: form.keywords.split(',').map(k => k.trim()).filter(Boolean) }
+    const entry = {
+      category: form.category,
+      title: form.title,
+      keywords: form.keywords.split(',').map(k => k.trim()).filter(Boolean),
+      details: form.details
+    }
     if (selectedId) {
       updateKnowledge(selectedId, entry)
     } else {
@@ -48,6 +92,8 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
     }
     setEditing(false)
   }
+
+  const currentFields = CATEGORY_FIELDS[form.category]
 
   return (
     <div className="knowledge-modal">
@@ -63,7 +109,8 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div className="category-filter">
-            {['全部', ...CATEGORIES].map(c => (
+            <button className={filter === '全部' ? 'active' : ''} onClick={() => setFilter('全部')}>全部</button>
+            {CATEGORIES.map(c => (
               <button key={c} className={filter === c ? 'active' : ''} onClick={() => setFilter(c)}>{c}</button>
             ))}
           </div>
@@ -99,14 +146,44 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
               <div className="detail-form">
-                <label>标题<input value={form.title} onChange={e => setForm({...form, title: e.target.value})} /></label>
-                <label>分类
-                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value as KnowledgeEntry['category']})}>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                <div className="form-row">
+                  <label className="form-label-inline">
+                    标题
+                    <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+                  </label>
+                  <label className="form-label-inline">
+                    分类
+                    <select value={form.category} onChange={e => handleCategoryChange(e.target.value as KnowledgeCategory)}>
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  关键词 (逗号分隔)
+                  <input value={form.keywords} onChange={e => setForm({...form, keywords: e.target.value})} />
                 </label>
-                <label>关键词 (逗号分隔)<input value={form.keywords} onChange={e => setForm({...form, keywords: e.target.value})} /></label>
-                <label>内容<textarea value={form.content} onChange={e => setForm({...form, content: e.target.value})} /></label>
+                <div className="detail-fields">
+                  {currentFields.map(field => (
+                    <label key={field.key} className="detail-field">
+                      <span className="field-label">{field.label}</span>
+                      {field.key === 'status' ? (
+                        <select 
+                          value={form.details[field.key] || '未揭示'} 
+                          onChange={e => handleDetailChange(field.key, e.target.value)}
+                        >
+                          <option value="未揭示">未揭示</option>
+                          <option value="已揭示">已揭示</option>
+                        </select>
+                      ) : (
+                        <textarea 
+                          value={form.details[field.key] || ''} 
+                          onChange={e => handleDetailChange(field.key, e.target.value)}
+                          placeholder={`输入${field.label}...`}
+                        />
+                      )}
+                    </label>
+                  ))}
+                </div>
               </div>
             </>
           ) : selected ? (
@@ -121,9 +198,20 @@ export function Knowledge({ onClose }: { onClose: () => void }) {
               <div className="detail-content">
                 <div className="meta">
                   <span className="category-tag">{selected.category}</span>
-                  <span className="keywords">关键词: {selected.keywords.join(', ')}</span>
+                  <span className="keywords">关键词: {selected.keywords.join(', ') || '无'}</span>
                 </div>
-                <div className="content-text">{selected.content}</div>
+                <div className="detail-sections">
+                  {CATEGORY_FIELDS[selected.category].map(field => {
+                    const value = (selected.details as Record<string, string>)[field.key]
+                    if (!value) return null
+                    return (
+                      <div key={field.key} className="detail-section">
+                        <h5>{field.label}</h5>
+                        <p>{value}</p>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </>
           ) : (
